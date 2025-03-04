@@ -68,7 +68,7 @@ public class CoinGamblerProblemTest {
 		plotUpdatedValueFunctions.setXAxisLabel("State");
 		plotUpdatedValueFunctions.setYAxisLabel("Updated value function, iteration " + 1);
 		plotUpdatedValueFunctions.show();
-		Thread.sleep(1000);
+		Thread.sleep(4000);
 
 		//..and then we dynamically print the next ones, until the final ones
 		for (int iterationIndex = 1; iterationIndex < updatedValues.size(); iterationIndex ++) {
@@ -82,7 +82,7 @@ public class CoinGamblerProblemTest {
 
 			plotUpdatedValueFunctions.update(plotables);//in this way, all the plots are in the same figure
 			plotUpdatedValueFunctions.setYAxisLabel("Updated value function, iteration " + (iterationIndex+1));
-			Thread.sleep(1000); 
+			Thread.sleep(4000); 
 		}
 	}
 }

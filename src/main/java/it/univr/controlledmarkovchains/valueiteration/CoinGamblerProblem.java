@@ -56,11 +56,13 @@ public class CoinGamblerProblem extends ValueIteration {
 				
 		double[] oldStateValues = getOldValueFunctions();
 
+		double discountFactor =  getDiscountFactor();
+			
 		double[] actionReturns = new double[actions.length];
         for (int actionIndex = 0; actionIndex < actions.length; actionIndex ++ ) {
         	//the expected value at the next step given the chosen action and the current state. There is no reward function
-        	actionReturns[actionIndex]= headProbability * oldStateValues[ (int) (state + actions[actionIndex])]
-        				 + (1 - headProbability) * oldStateValues[(int) (state - actions[actionIndex])];      	
+        	actionReturns[actionIndex]= discountFactor * (headProbability * oldStateValues[ (int) (state + actions[actionIndex])]
+        				 + (1 - headProbability) * oldStateValues[(int) (state - actions[actionIndex])]);      	
         }
 		return actionReturns;
 	}	

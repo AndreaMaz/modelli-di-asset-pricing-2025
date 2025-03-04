@@ -1,6 +1,7 @@
 package it.univr.usefulmethodsarrays;
 
 import java.util.Arrays;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
@@ -37,9 +38,13 @@ public class UsefulMethodsArrays {
 		if (firstArray.length != secondArray.length) {
 			throw new Exception();
 		}
-
-		return IntStream.range(0, firstArray.length)//the indices range from 0 to array.length-1
-				.mapToDouble(i -> Math.abs(firstArray[i] - secondArray[i])).max().getAsDouble();
+		
+		//the indices range from 0 to array.length-1
+		IntStream indices = IntStream.range(0, firstArray.length);
+		
+		DoubleStream absoluteDifferences = indices.mapToDouble(i -> Math.abs(firstArray[i] - secondArray[i]));
+		
+		return absoluteDifferences.max().getAsDouble();
 	}
 
 	/**
@@ -50,8 +55,10 @@ public class UsefulMethodsArrays {
 	 */
 	public static int getMaximizingIndex(double[] array) {
 		double maximum = getMax(array);
-
-		int[] maximizingIndices = IntStream.range(0, array.length).filter(i -> Precision.round(array[i],4) == Precision.round(maximum,4)).toArray();
+		IntStream indices = IntStream.range(0, array.length);//0,1,2,3,4,5,6
+		//IntStream maximizingIndicesAsStream = indices.filter(i -> array[i] == maximum);//3,6
+		IntStream maximizingIndicesAsStream = indices.filter(i -> Precision.round(array[i],4) == Precision.round(maximum,4));
+		int[] maximizingIndices = maximizingIndicesAsStream.toArray();
 		return maximizingIndices[0];
 	}
 

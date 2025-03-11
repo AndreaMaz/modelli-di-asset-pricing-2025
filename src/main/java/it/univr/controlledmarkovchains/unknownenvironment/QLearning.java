@@ -111,15 +111,22 @@ public abstract class QLearning {
 		 * independently of the action
 		 */
 		for (int stateIndex = 0; stateIndex < numberOfStates; stateIndex ++) {
-			//the index of the actions which are allowed for that state
-			int[] possibleActionsIndices = computePossibleActionsIndices(stateIndex);
+			if (absorbingStatesIndicesAsList.contains(stateIndex)) {
+				for (int actionIndex = 0; actionIndex < numberOfActions; actionIndex ++) {
+					currentQValue[stateIndex][actionIndex]=rewardsAtStates[stateIndex];
+				}
+			} else {
+				//the index of the actions which are allowed for that state
+				int[] possibleActionsIndices = computePossibleActionsIndices(stateIndex);
 
-			//we make it a list because then it's easier to check if it contains the given action indices
-			List<Integer> possibleActionsIndicesAsList = Arrays.stream(possibleActionsIndices).boxed().toList();
+				//we make it a list because then it's easier to check if it contains the given action indices
+				List<Integer> possibleActionsIndicesAsList = Arrays.stream(possibleActionsIndices).boxed().toList();
 
-			//the column index is the action index
-			for (int actionIndex = 0; actionIndex < numberOfActions; actionIndex ++) {
-				currentQValue[stateIndex][actionIndex]=possibleActionsIndicesAsList.contains(actionIndex) ? rewardsAtStates[stateIndex] : Double.NEGATIVE_INFINITY;
+				//the column index is the action index
+				for (int actionIndex = 0; actionIndex < numberOfActions; actionIndex ++) {
+					currentQValue[stateIndex][actionIndex]=possibleActionsIndicesAsList.contains(actionIndex) ?
+							0 : Double.NEGATIVE_INFINITY;
+				}
 			}
 		}
 
@@ -160,7 +167,7 @@ public abstract class QLearning {
 
 				if (absorbingStatesIndicesAsList.contains(newStateIndex)) {
 					//if we land at an absorbing state, there is no possible action to be taken: the value is equal to the reward
-					currentQValue[stateIndex][chosenActionIndex] = currentQValue[stateIndex][chosenActionIndex] +
+					currentQValue[stateIndex][chosenActionIndex] =currentQValue[stateIndex][chosenActionIndex] +
 							learningRate * (discountFactor*rewardsAtStates[newStateIndex]-currentQValue[stateIndex][chosenActionIndex]) ;
 					break; //we exit the while loop
 				}
@@ -170,7 +177,10 @@ public abstract class QLearning {
 
 				//update
 				currentQValue[stateIndex][chosenActionIndex] = currentQValue[stateIndex][chosenActionIndex] +
-						learningRate * (runningRewards[stateIndex][chosenActionIndex] + discountFactor*maximumForGivenStateIndex-currentQValue[stateIndex][chosenActionIndex]) ;
+						learningRate *
+						(runningRewards[stateIndex][chosenActionIndex]
+								+ discountFactor*maximumForGivenStateIndex
+								-currentQValue[stateIndex][chosenActionIndex]) ;
 
 
 				stateIndex = newStateIndex;

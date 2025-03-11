@@ -34,7 +34,8 @@ public class CoinGamblerProblemTest {
 
 		//plot of the last value functions
 		double[] valueFunctions = problemSolver.getValueFunctions();
-		
+		System.out.println("Total sum of value functions: " + Arrays.stream(valueFunctions).sum());
+
 		final Plot2D plotValueFunctions = new Plot2D(1, amountOfMoneyToReach-1, amountOfMoneyToReach-1, Arrays.asList(
 				new Named<DoubleUnaryOperator>("Value function", x -> valueFunctions[(int) x])));
 		

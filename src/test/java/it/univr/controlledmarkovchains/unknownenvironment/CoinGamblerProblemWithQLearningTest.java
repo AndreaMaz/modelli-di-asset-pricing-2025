@@ -21,7 +21,7 @@ public class CoinGamblerProblemWithQLearningTest {
 		int amountOfMoneyToReach = 100;
 		double discountFactor = 1.0;//no discount
 
-		int numberOfEpisodes = 100000;	
+		int numberOfEpisodes = 10000;	
 		double learningRate = 0.3;
 		double explorationProbability = 0.1;//usually, one needs to choose a small exploration probability
 
@@ -30,6 +30,7 @@ public class CoinGamblerProblemWithQLearningTest {
 
 		double[] valueFunctions = problemSolver.getValueFunctions();
 		
+		System.out.println("Total sum of value functions: " + Arrays.stream(valueFunctions).sum());
 		
 		final Plot2D plotValueFunctions = new Plot2D(1, amountOfMoneyToReach-1, amountOfMoneyToReach-1, Arrays.asList(
 				new Named<DoubleUnaryOperator>("Value function", x -> valueFunctions[(int) x])));

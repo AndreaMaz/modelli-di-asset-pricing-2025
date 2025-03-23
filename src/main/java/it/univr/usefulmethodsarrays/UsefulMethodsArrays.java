@@ -61,6 +61,7 @@ public class UsefulMethodsArrays {
 		int[] maximizingIndices = maximizingIndicesAsStream.toArray();
 		return maximizingIndices[0];
 	}
+	
 
 
 	/**

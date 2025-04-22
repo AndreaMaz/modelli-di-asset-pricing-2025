@@ -37,15 +37,14 @@ public class PolicyImprovementTest {
 		System.out.println("Analytic optimal control " +  formatterForControl.format(optimalControl));
 		System.out.println();
 		
-		//DA CAMBIARE INSIEME
 		
 		//functions for the SDE
-		TriFunction<Double, Double, Double, Double> driftFunctionWithControl = (t,x,a) -> 0.0;
-		TriFunction<Double, Double, Double, Double> diffusionFunctionWithControl = (t,x,a) -> 0.0;
+		TriFunction<Double, Double, Double, Double> driftFunctionWithControl = (t,x,a) -> x*(a*(constantDrift-interestRate)+interestRate);
+		TriFunction<Double, Double, Double, Double> diffusionFunctionWithControl = (t,x,a) -> x*a*constantSigma;
 		
 		//functions for the rewards
 		TriFunction<Double, Double, Double, Double> runningRewardFunction = (t,x,a) -> 0.0;
-		DoubleUnaryOperator finalRewardFunction = x -> 0.0;
+		DoubleUnaryOperator finalRewardFunction = x -> Math.pow(x,exponentForFinalRewardFunction);
 		
 		//function for the left border. In our case, the left border is zero
 		DoubleBinaryOperator functionLeft = (t, a) -> 0.0;
@@ -67,6 +66,7 @@ public class PolicyImprovementTest {
 		
 		PolicyImprovement optimizer = new PolicyImprovement(driftFunctionWithControl, diffusionFunctionWithControl, runningRewardFunction, finalRewardFunction, functionLeft,
 				leftEndControlInterval,  rightEndControlInterval,  controlStep,  leftEndSpaceInterval, rightEndSpaceInterval,  spaceStep,  finalTime,  timeStep, requiredPrecision, maxNumberIterations);
+		
 		
 		//it will be used to compute the analytic value function
 		double beta = 0.5 * constantSigma * constantSigma * optimalControl * optimalControl * exponentForFinalRewardFunction * (exponentForFinalRewardFunction - 1)

@@ -58,7 +58,7 @@ public class DeepHedging {
 	private int numberOfTimes;
 	private TimeDiscretization times;
 	private int numberOfSimulations;
-	
+
 	//paremeters for the network: they will be given in the constructor
 	private int seedForNetwork;
 	private int numberOfNodesForFirstLayer;
@@ -86,7 +86,7 @@ public class DeepHedging {
 	 */
 	public DeepHedging(AssetModelMonteCarloSimulationModel pricesGenerator, int numberOfNodesForFirstLayer,
 			int numberOfNodesForSecondLayer, int numberOfEpochs, double learningRate, double strike, double optionPrice, int seedForNetwork) {
-		
+
 		this.pricesGenerator = pricesGenerator;
 
 		this.numberOfNodesForFirstLayer = numberOfNodesForFirstLayer;
@@ -105,10 +105,10 @@ public class DeepHedging {
 	}
 
 
-	
+
 	// In this method, we construct the big network as the "union" of sub-neural networks
 	private void constructNetwork() {
-		
+
 		/*
 		 * Here we specify that our network will be trained using the Adam algorithm as updater to find the optimal parameters,
 		 * with specified learning rate and seed. Here it is enough to know that GraphBuilder is a class that allows
@@ -128,48 +128,48 @@ public class DeepHedging {
 		 * to these objects. 
 		 * Here we give the strings for the first layers and vertices, at time 0. 
 		 */
-		
+
 		//it will be "price0" (we could directly write price0 but this is more consistent with what we do after)
 		String stringForPrice = "price" + 0; 
 
 		//same thing for these ones
-		
+
 		String stringForFirstHiddenLayer = "firstHiddenLayer" + 0;
 		String stringForSecondHiddenLayer = "secondHiddenLayer" + 0;
 
 		//"strategy" will always mean how much we buy or sell
 		String stringForStrategy = "strategy" + 0;
-		
+
 		/*
 		 * "strategyValue" will always mean how much we gain/lose from the single strategy decided at time t_n, when we see
 		 * the new price at time t_{n+1}
 		 */
 		String stringForStrategyValue;
 
-		
+
 		//The cumulative strategy value at given time will be equal to the sum of all strategyValues up to that time..
 		String stringForOldCumulativeStrategyValue = "cumulativeStrategyValue" + 0;
-		
+
 		//..so: the new one will be the old one plus strategyValue
 		String stringForCumulativeStrategyValue;
 
 		String stringForIncrement;
 
 		/*
-		 * Here below we construct the first inputs and layers of the big netwoirk: this specification here basically
+		 * Here below we construct the first inputs and layers of the big network: this specification here basically
 		 * constitutes the first sub-network
 		 */
-	
+
 		/*
 		 * addInputs(String inputName) is a method which basically tells Java that later, when we will effectively
-		 * train and test the network, we will give an input corresponding to the string specified.
+		 * train and test the network, we will give an input identified by the string specified.
 		 * We will then have as many different inputs as the number of times we call the method addInputs in the
 		 * network construction. For any different input, as many values will be given as the size of the training set.
 		 * The order with which we give the different inputs must be the same as the one with which we call the corresponding
 		 * methods. See what we do in the construction of inputsArrayTrain in the trainNetwork() method.
 		 * 
 		 */
-		
+
 		//the first input is quite dummy: it's just the starting value of profits and losses coming from the strategy, i.e., zero. 
 		builder.addInputs(stringForOldCumulativeStrategyValue)
 		//the second one is the initial price of the underlying
@@ -199,7 +199,7 @@ public class DeepHedging {
 		 * the strategy, because this will contribute to the loss function which we need to train the network      
 		 */
 		for(int timeIndex = 1; timeIndex < numberOfTimes - 1; timeIndex ++) {
-			
+
 			/*
 			 * All these strings identify the specific layer and vertices. Their name must be always different, which we achieve by placing the specific
 			 * iteration number at the end
@@ -212,7 +212,7 @@ public class DeepHedging {
 			stringForIncrement = "increment" + timeIndex;
 
 			//here we basically proceed as above, adding further inputs, vertices and layers to the network at each iteration
-			
+
 			builder.addInputs(stringForPrice)//we start from the new price at time t_{timeIndex}
 			/*
 			 * Note how a vertex is constructed: string which identifies this vertex, name of the operation that must be performed
@@ -222,7 +222,7 @@ public class DeepHedging {
 			.addVertex(stringForIncrement, new ElementWiseVertex(Op.Subtract), stringForPrice, stringForOldPrice)
 			//..and based on this increment, the profit and loss of the last computed strategy..
 			.addVertex(stringForStrategyValue, new ElementWiseVertex(Op.Product), stringForIncrement, stringForStrategy)
-			//..which we then sum to the vertex identified to stringForOldCumulativeStrategyValue, to compute the new value
+			//..which we then sum to the vertex identified by stringForOldCumulativeStrategyValue, to compute the new value
 			.addVertex(stringForCumulativeStrategyValue, new ElementWiseVertex(Op.Add), stringForStrategyValue, stringForOldCumulativeStrategyValue)
 			//now we go back to price, and give it as an input to the first layer of the new sub-network
 			.addLayer(stringForFirstHiddenLayer, new DenseLayer.Builder().nIn(1).nOut(numberOfNodesForFirstLayer)
@@ -244,9 +244,9 @@ public class DeepHedging {
 		}
 
 		//now we are at the last time: the last strategy which was possible to compute was at the time before, now we just observe what we got
-		
+
 		builder.addInputs("lastPrice")//here is the last price
-		
+
 		//and based on this, as we did in the for loop, we compute increment, profit and loss for the last strategy and cumulative value
 		.addVertex("lastIncrement", new ElementWiseVertex(Op.Subtract), "lastPrice", stringForPrice)
 		.addVertex("lastStrategyValue", new ElementWiseVertex(Op.Product), "lastIncrement", stringForStrategy)
@@ -261,7 +261,7 @@ public class DeepHedging {
 		.addVertex("strategyMinusPayoff",  new ElementWiseVertex(Op.Subtract), "lastCumulativeStrategyValue", "payoff")		
 		//..and this is the final portfolio value: we just add the price at which the option has been sold
 		.addVertex("finalPortfolioValue", new ShiftVertex(+ optionPrice), "strategyMinusPayoff")	
-		
+
 		/*
 		 * This is now the output of our network, based on which we compute the loss function. Basically we want it to have the same
 		 * value as finalPortfolioValue, but to be defined as a layer because in this way we can specify the loss function. It has
@@ -273,13 +273,13 @@ public class DeepHedging {
 		.setOutputs("finalOutput");
 
 		//little technical thing: how to construct a true network out of a configuration
-		
+
 		ComputationGraphConfiguration configuration = builder.build();
 
 		network = new ComputationGraph(configuration);
 		network.init();
 
-		
+
 		//we give the values of the parameters of the last layer (see above)
 		Layer finalPortfolioOutputLayer = network.getLayer("finalOutput");
 
@@ -293,12 +293,12 @@ public class DeepHedging {
 
 	}
 
-	
-	 // In this method, we create an object of type MultiDataSet and we use it to train the network 
+
+	// In this method, we create an object of type MultiDataSet and we use it to train the network 
 	private void trainNetwork() throws CalculationException {
-		
+
 		/*
-		 * The length of this array must be equal to the number of inputs that we give to the netowrk constructed in the method above:
+		 * The length of this array must be equal to the number of inputs that we give to the network constructed in the method above:
 		 * we had one input at the beginning (equal to zero, for the initial value of the cumulative sum of the strategies' values),
 		 * numberOfTimes prices and then the other dummy input equal to zero at the end
 		 */
@@ -315,7 +315,7 @@ public class DeepHedging {
 
 		//in this for loop, we get the prices for every simulation at all times, and we use them to construct the NDArray objects
 		for(int timeIndex = 0; timeIndex < numberOfTimes; timeIndex ++) {
-			
+
 			//they are kind of dummy matrices of one column: the constructor of NDArray accepts matrices, not one-dimensional arrays
 			double[][] pricesAtTimeToTrain = new double[numberOfSimulations][1];
 
@@ -369,20 +369,20 @@ public class DeepHedging {
 			constructNetwork();
 			trainNetwork();
 		}
-		
+
 		/*
 		 * Here we specify that we want a AssetModelMonteCarloSimulationModel object which is the same as pricesGenerator but:
 		 * - with different seed
 		 * - with different number of simulations
 		 */
-		
+
 		//here we specify the different seed..
 		AssetModelMonteCarloSimulationModel generatorWithModifiedSeed = pricesGenerator.getCloneWithModifiedSeed(seedForTesting);
-		
+
 		//..and here that we want to change the number of simulations, and how many we want now
 		final Map<String, Object> mapToChangeTheNumberOfSimulations = new HashMap<String, Object>();
 		mapToChangeTheNumberOfSimulations.put("numberOfSimulations", numberOfSimulationsForTesting);
-		
+
 		//we construct the generator..
 		AssetModelMonteCarloSimulationModel testingPricesGenerator = generatorWithModifiedSeed.getCloneWithModifiedData(mapToChangeTheNumberOfSimulations);
 
@@ -418,7 +418,7 @@ public class DeepHedging {
 		//we convert this column in an array of doubles and get what we want to return 
 		double[] portfolioValuesTest = portfolioValuesTestAsINDArray[0].toDoubleVector();
 
-		
+
 		return portfolioValuesTest;
 	}
 
